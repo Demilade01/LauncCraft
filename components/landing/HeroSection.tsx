@@ -100,7 +100,7 @@ export function HeroSection() {
             size="lg"
             className="text-lg px-8 py-6 rounded-full group"
           >
-            <Link href="#get-started">
+            <Link href="/form">
               Get Started Free
               <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Link>

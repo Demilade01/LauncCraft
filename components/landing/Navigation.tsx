@@ -50,7 +50,7 @@ export function Navigation() {
           </div>
 
           <Button asChild size="sm">
-            <Link href="#get-started">Get Started</Link>
+            <Link href="/form">Get Started</Link>
           </Button>
         </div>
       </div>
