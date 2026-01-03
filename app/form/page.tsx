@@ -1,11 +1,8 @@
-import { Navigation } from "@/components/landing/Navigation";
 import { MultiStepForm } from "@/components/form/MultiStepForm";
 
 export default function FormPage() {
   return (
-    <>
-      <Navigation />
-      <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-12">
@@ -23,7 +20,6 @@ export default function FormPage() {
           </div>
         </div>
       </main>
-    </>
   );
 }
 
