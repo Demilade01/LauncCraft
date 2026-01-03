@@ -9,12 +9,15 @@ A lightweight web tool that helps founders turn product ideas into clear, conver
 
 ## ✨ Features
 
+- **🤖 AI-Powered Generation** - Uses OpenAI to create compelling, conversion-optimized copy
 - **🎯 Guided Multi-Step Form** - Answer 5 simple questions about your product
 - **⚡ Lightning Fast** - Generate landing page copy in minutes
 - **📝 Structured Output** - Get well-organized, conversion-focused copy
 - **💾 Auto-Save** - Your progress is automatically saved as you fill the form
 - **📤 Multiple Export Formats** - Export as Markdown, HTML, or Plain Text
 - **📋 Copy to Clipboard** - One-click copy for all formats
+- **🌐 Complete Website Package** - Download ready-to-deploy HTML + CSS files
+- **👁️ Live Preview** - See your generated website in real-time
 - **🎨 Modern UI** - Beautiful, responsive design with smooth animations
 - **🌙 Dark Mode** - Built-in dark mode support
 
@@ -29,6 +32,7 @@ A lightweight web tool that helps founders turn product ideas into clear, conver
 - **Animations:** [Framer Motion](https://www.framer.com/motion/)
 - **Icons:** [Lucide React](https://lucide.dev/)
 - **Notifications:** [Sonner](https://sonner.emilkowal.ski/)
+- **AI:** [OpenAI API](https://openai.com/) (GPT-4o-mini) for intelligent content generation
 
 ## 📦 Installation
 
@@ -47,7 +51,21 @@ A lightweight web tool that helps founders turn product ideas into clear, conver
    pnpm install
    ```
 
-3. **Run the development server**
+   If the OpenAI package isn't installed, install it separately:
+   ```bash
+   npm install openai
+   ```
+
+3. **Set up OpenAI API Key (Optional but Recommended)**
+   Create a `.env.local` file in the root directory:
+   ```bash
+   OPENAI_API_KEY=your_openai_api_key_here
+   ```
+   Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+   > **Note:** Without an API key, the app will use template-based generation. AI-powered generation provides much better, more compelling copy.
+
+4. **Run the development server**
    ```bash
    npm run dev
    # or
@@ -56,7 +74,7 @@ A lightweight web tool that helps founders turn product ideas into clear, conver
    pnpm dev
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## 🚀 Usage
