@@ -18,18 +18,53 @@ export default function PreviewPage() {
   const [content, setContent] = useState<LandingPageContent | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [showLivePreview, setShowLivePreview] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Validate form data
-    const result = formSchema.safeParse(formData);
-    if (!result.success) {
-      toast.error("Invalid form data. Please complete the form first.");
-      router.push("/form");
-      return;
-    }
+    const generateContent = async () => {
+      // Validate form data
+      const result = formSchema.safeParse(formData);
+      if (!result.success) {
+        toast.error("Invalid form data. Please complete the form first.");
+        router.push("/form");
+        return;
+      }
 
-    const generated = generateLandingPage(result.data);
-    setContent(generated);
+      setIsGenerating(true);
+      setError(null);
+
+      try {
+        // Try AI generation first
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(result.data),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to generate with AI");
+        }
+
+        const { content: aiContent } = await response.json();
+        setContent(aiContent);
+        toast.success("Landing page generated with AI!");
+      } catch (err) {
+        console.error("AI generation failed, falling back to template:", err);
+        // Fallback to template-based generation
+        const generated = generateLandingPage(result.data);
+        setContent(generated);
+        toast.warning("Using template-based generation. Add OPENAI_API_KEY to your .env for AI-powered content.");
+        setError(err instanceof Error ? err.message : "AI generation failed");
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+
+    generateContent();
   }, [formData, router]);
 
   const handleCopy = async (text: string, type: string) => {
@@ -72,11 +107,17 @@ export default function PreviewPage() {
     }, 500);
   };
 
-  if (!content) {
+  if (isGenerating || !content) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground">Loading preview...</p>
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">
+            {isGenerating ? "AI is crafting your landing page..." : "Loading preview..."}
+          </p>
+          {isGenerating && (
+            <p className="text-sm text-muted-foreground">This may take a few seconds</p>
+          )}
         </div>
       </main>
     );
@@ -96,7 +137,7 @@ export default function PreviewPage() {
               <div>
                 <h1 className="text-4xl font-bold mb-2">Your Landing Page</h1>
                 <p className="text-muted-foreground">
-                  Review and export your generated landing page copy
+                  {error ? "Generated with template (AI unavailable)" : "AI-generated landing page"}
                 </p>
               </div>
               <Button
@@ -108,6 +149,14 @@ export default function PreviewPage() {
                 Edit
               </Button>
             </div>
+
+            {error && (
+              <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Note:</strong> {error}. Using template-based generation. Add OPENAI_API_KEY to your .env file for AI-powered content.
+                </p>
+              </div>
+            )}
 
             {/* Preview Content */}
             <div className="grid lg:grid-cols-3 gap-6 mb-8">
