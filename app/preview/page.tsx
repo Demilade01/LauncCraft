@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Copy, Download, FileText, Code, FileCode, ArrowLeft, Check } from "lucide-react";
+import { Copy, Download, FileText, Code, FileCode, ArrowLeft, Check, Package, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Navigation } from "@/components/landing/Navigation";
 import { useFormStore } from "@/lib/store/formStore";
-import { generateLandingPage, generateMarkdown, generateHTML, generatePlainText, type LandingPageContent } from "@/lib/generators/landingPageGenerator";
+import { generateLandingPage, generateMarkdown, generateHTML, generatePlainText, generateCSS, type LandingPageContent } from "@/lib/generators/landingPageGenerator";
 import { formSchema, type FormData } from "@/lib/schemas/formSchema";
 import { toast } from "sonner";
 import { fadeInUp } from "@/lib/animations";
@@ -18,6 +17,7 @@ export default function PreviewPage() {
   const { formData, resetForm } = useFormStore();
   const [content, setContent] = useState<LandingPageContent | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [showLivePreview, setShowLivePreview] = useState(false);
 
   useEffect(() => {
     // Validate form data
@@ -56,23 +56,34 @@ export default function PreviewPage() {
     toast.success(`Downloaded ${filename}`);
   };
 
+  const handleDownloadWebsite = () => {
+    if (!content) return;
+
+    // Create HTML with external CSS
+    const htmlContent = generateHTML(content, false);
+    const cssContent = generateCSS();
+
+    // Create a zip-like structure by downloading both files
+    // For now, we'll download them separately with instructions
+    handleDownload(htmlContent, "index.html", "text/html");
+    setTimeout(() => {
+      handleDownload(cssContent, "styles.css", "text/css");
+      toast.success("Website package downloaded! Extract both files to the same folder.");
+    }, 500);
+  };
+
   if (!content) {
     return (
-      <>
-        <Navigation />
-        <main className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <p className="text-muted-foreground">Loading preview...</p>
-          </div>
-        </main>
-      </>
+      <main className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading preview...</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <>
-      <Navigation />
-      <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
             variants={fadeInUp}
@@ -104,46 +115,84 @@ export default function PreviewPage() {
               <div className="lg:col-span-2 space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Preview</CardTitle>
-                    <CardDescription>Your generated landing page content</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-8">
-                    {/* Hero Section */}
-                    <section className="space-y-4">
-                      <h1 className="text-3xl font-bold">{content.hero.headline}</h1>
-                      <p className="text-lg text-muted-foreground">{content.hero.subheadline}</p>
-                      <Button>{content.hero.ctaText}</Button>
-                    </section>
-
-                    <div className="border-t pt-8">
-                      {/* Problem Section */}
-                      <section className="space-y-4 mb-8">
-                        <h2 className="text-2xl font-semibold">{content.problem.title}</h2>
-                        <p className="text-muted-foreground whitespace-pre-line">{content.problem.description}</p>
-                      </section>
-
-                      {/* Solution Section */}
-                      <section className="space-y-4 mb-8">
-                        <h2 className="text-2xl font-semibold">{content.solution.title}</h2>
-                        <p className="text-muted-foreground whitespace-pre-line">{content.solution.description}</p>
-                        <div className="bg-muted p-4 rounded-lg">
-                          <h3 className="font-semibold mb-2">Key Benefit</h3>
-                          <p className="text-muted-foreground whitespace-pre-line">{content.solution.benefit}</p>
-                        </div>
-                      </section>
-
-                      {/* Audience Section */}
-                      <section className="space-y-4 mb-8">
-                        <h2 className="text-2xl font-semibold">{content.audience.title}</h2>
-                        <p className="text-muted-foreground whitespace-pre-line">{content.audience.description}</p>
-                      </section>
-
-                      {/* Final CTA */}
-                      <section className="space-y-4 text-center pt-8 border-t">
-                        <h2 className="text-2xl font-semibold">Ready to Get Started?</h2>
-                        <Button size="lg">{content.cta.text}</Button>
-                      </section>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Preview</CardTitle>
+                        <CardDescription>Your generated landing page</CardDescription>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowLivePreview(!showLivePreview)}
+                        className="gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        {showLivePreview ? "Hide" : "Show"} Live Preview
+                      </Button>
                     </div>
+                  </CardHeader>
+                  <CardContent>
+                    {showLivePreview ? (
+                      <div className="border rounded-lg overflow-hidden" style={{ height: "600px" }}>
+                        <iframe
+                          srcDoc={generateHTML(content, true)}
+                          className="w-full h-full border-0"
+                          title="Live Preview"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {/* Hero Section */}
+                        <section className="space-y-4">
+                          <h1 className="text-3xl font-bold">{content.hero.headline}</h1>
+                          <p className="text-lg text-muted-foreground">{content.hero.subheadline}</p>
+                          <Button>{content.hero.ctaText}</Button>
+                        </section>
+
+                        <div className="border-t pt-8">
+                          {/* Problem Section */}
+                          <section className="space-y-4 mb-8">
+                            <h2 className="text-2xl font-semibold">{content.problem.title}</h2>
+                            <p className="text-muted-foreground whitespace-pre-line">{content.problem.description}</p>
+                          </section>
+
+                          {/* Solution Section */}
+                          <section className="space-y-4 mb-8">
+                            <h2 className="text-2xl font-semibold">{content.solution.title}</h2>
+                            <p className="text-muted-foreground whitespace-pre-line">{content.solution.description}</p>
+                            <div className="bg-muted p-4 rounded-lg">
+                              <h3 className="font-semibold mb-2">Key Benefit</h3>
+                              <p className="text-muted-foreground whitespace-pre-line">{content.solution.benefit}</p>
+                            </div>
+                          </section>
+
+                          {/* Audience Section */}
+                          <section className="space-y-4 mb-8">
+                            <h2 className="text-2xl font-semibold">{content.audience.title}</h2>
+                            <p className="text-muted-foreground whitespace-pre-line">{content.audience.description}</p>
+                          </section>
+
+                          {/* Features Section */}
+                          <section className="space-y-4 mb-8">
+                            <h2 className="text-2xl font-semibold">Why Choose Us</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {content.features.map((feature, index) => (
+                                <div key={index} className="bg-muted p-4 rounded-lg">
+                                  <h3 className="font-semibold mb-2">Feature {index + 1}</h3>
+                                  <p className="text-sm text-muted-foreground">{feature}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </section>
+
+                          {/* Final CTA */}
+                          <section className="space-y-4 text-center pt-8 border-t">
+                            <h2 className="text-2xl font-semibold">Ready to Get Started?</h2>
+                            <Button size="lg">{content.cta.text}</Button>
+                          </section>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
@@ -232,6 +281,25 @@ export default function PreviewPage() {
                   </CardContent>
                 </Card>
 
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Website Package</CardTitle>
+                    <CardDescription>Complete deploy-ready website</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button
+                      className="w-full justify-start gap-2"
+                      onClick={handleDownloadWebsite}
+                    >
+                      <Package className="w-4 h-4" />
+                      Download Website Package
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Downloads HTML + CSS files ready to deploy
+                    </p>
+                  </CardContent>
+                </Card>
+
                 <Button
                   variant="outline"
                   className="w-full"
@@ -247,7 +315,6 @@ export default function PreviewPage() {
           </motion.div>
         </div>
       </main>
-    </>
   );
 }
 
